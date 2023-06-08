@@ -1,0 +1,38 @@
+############Commands to execute hadoop map reduce#####################
+
+hdfs dfs -pup /train/pos/*.txt /movie_reviews/train/
+
+hadoop-3.3.5/bin/hdfs namenode -format
+
+# phase 1
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-files p1_mapper.py,p1_reducer.py \
+-mapper p1_mapper.py \
+-reducer p1_reducer.py \
+-input /movie-reviews/train/pos \
+-input /movie-reviews/train/neg \
+-output /movie-reviews/train/p1_out/
+
+# phase 2
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-files p2_mapper.py,p2_reducer.py \
+-mapper p2_mapper.py \
+-reducer p2_reducer.py \
+-input /movie-reviews/train/p1_out/part-00000 \
+-output /movie-reviews/train/p2_out/
+
+# phase 3
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-files p3_mapper.py,p3_reducer.py \
+-mapper p3_mapper.py \
+-reducer p3_reducer.py \
+-input /movie-reviews/train/p2_out/part-00000 \
+-output /movie-reviews/train/p3_out/
+
+# phase 4 matrix creation
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-files matrix_mapper.py,matrix_reducer.py \
+-mapper matrix_mapper.py \
+-reducer matrix_reducer.py \
+-input /movie-reviews/train/p3_out/part-00000 \
+-output /movie-reviews/train/matrix_out/
